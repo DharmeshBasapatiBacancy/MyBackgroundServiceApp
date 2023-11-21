@@ -1,6 +1,7 @@
 package com.example.mybackgroundserviceapp
 
 import android.Manifest
+import android.app.Activity
 import android.app.AlarmManager
 import android.app.PendingIntent
 import android.content.Context
@@ -9,11 +10,14 @@ import android.content.pm.PackageManager
 import android.location.Location
 import android.os.SystemClock
 import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 import com.google.android.gms.location.LocationServices
 
 class Utils {
 
     companion object {
+
+        val PERMISSIONS_REQUEST_CODE = 0
 
         fun fetchLocation(context: Context, onLocationFetched: (Location) -> Unit) {
             val fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(context)
@@ -55,6 +59,17 @@ class Utils {
             )
         }
 
+        fun Activity.hasLocationPermission(onPermissionGranted: () -> Unit) {
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED ) {
+                requestLocationPermissions()
+            }else{
+                onPermissionGranted()
+            }
+        }
+
+        private fun Activity.requestLocationPermissions() {
+            ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION), PERMISSIONS_REQUEST_CODE)
+        }
     }
 
 }

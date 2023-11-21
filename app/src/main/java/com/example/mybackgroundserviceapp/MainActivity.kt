@@ -1,9 +1,12 @@
 package com.example.mybackgroundserviceapp
 
+import android.content.pm.PackageManager
 import android.os.Bundle
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.work.PeriodicWorkRequest
 import androidx.work.WorkManager
+import com.example.mybackgroundserviceapp.Utils.Companion.hasLocationPermission
 import com.example.mybackgroundserviceapp.databinding.ActivityMainBinding
 import com.example.mybackgroundserviceapp.worker.LocationUpdateWorker
 import java.util.concurrent.TimeUnit
@@ -22,9 +25,31 @@ class MainActivity : AppCompatActivity() {
             /*val intent = Intent(this, LocationUpdateService::class.java)
             startService(intent)*/
 
-            val locationWorkRequest = PeriodicWorkRequest.Builder(LocationUpdateWorker::class.java, 15, TimeUnit.MINUTES).build()
-            WorkManager.getInstance(this).enqueue(locationWorkRequest)
+            hasLocationPermission {
+                val locationWorkRequest = PeriodicWorkRequest.Builder(LocationUpdateWorker::class.java, 15, TimeUnit.MINUTES).build()
+                WorkManager.getInstance(this).enqueue(locationWorkRequest)
+            }
 
+
+        }
+    }
+
+    override fun onRequestPermissionsResult(
+        requestCode: Int, permissions: Array<out
+
+        String>, grantResults: IntArray
+    ) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+
+        if (requestCode == Utils.PERMISSIONS_REQUEST_CODE) {
+            if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                // Permission granted
+                val locationWorkRequest = PeriodicWorkRequest.Builder(LocationUpdateWorker::class.java, 15, TimeUnit.MINUTES).build()
+                WorkManager.getInstance(this).enqueue(locationWorkRequest)
+            } else {
+                // Permission denied
+                Toast.makeText(this, "Location permission denied", Toast.LENGTH_SHORT).show()
+            }
         }
     }
 }
